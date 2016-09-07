@@ -11,7 +11,6 @@ import time
 from socketIO_client import SocketIO, LoggingNamespace
 import datetime
 import urllib3
-import psutil
 from urllib3.exceptions import InsecureRequestWarning
 
 urllib3.disable_warnings(InsecureRequestWarning)
@@ -20,10 +19,6 @@ past_core0 = 0
 past_core1 = 0
 past_cpu_usage = 0
 socketIO = SocketIO('http://127.0.0.1:8000')
-
-
-# socketIO = SocketIO('https://127.0.0.1',3000,verify='privkey.pem',cert=('cert.pem', 'chain.pem'))
-
 
 def get_time():
     return datetime.datetime.now().time()
