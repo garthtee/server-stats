@@ -2,7 +2,6 @@
 import socketio
 import eventlet
 import eventlet.wsgi
-import ssl
 import json
 from flask import Flask, render_template
 
@@ -52,8 +51,3 @@ if __name__ == '__main__':
 
     # deploy as an eventlet WSGI server
     eventlet.wsgi.server(eventlet.listen(('', 8000)), app)
-
-# if __name__ == "__main__":
-#     app = socketio.Middleware(sio, app)
-#     context = ('cert.pem', 'privkey.pem')
-#     app.run(host='0.0.0.0', port=8000, ssl_context=context, threaded=True, debug=True)
