@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="7f5f76fb-1de4-4389-9015-c1dd8607d069" name="manor-server" url="http://192.168.1.9">
+        <fileTransfer host="192.168.1.9" port="2211" accessType="SFTP" password="dfe7dfc5dfc5dfc4df99df9ddf9bdf98" username="garthtee">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="2211" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
