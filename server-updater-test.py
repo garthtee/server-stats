@@ -35,5 +35,5 @@ count = 0
 while True:
     count += 1
     send_data(count)
-    time.sleep(2)
+    time.sleep(10)
 

@@ -3,17 +3,30 @@ import socketio
 import eventlet
 import eventlet.wsgi
 import json
-import time
 import threading
+import sensors
+import time
+import datetime
+import urllib3
+import psutil
+from urllib3.exceptions import InsecureRequestWarning
+from socketIO_client import SocketIO, LoggingNamespace
 from flask import Flask, render_template
 from gcm import GCM
 
+# SocketIO #
+urllib3.disable_warnings(InsecureRequestWarning)
+past_core0 = 0
+past_core1 = 0
+past_cpu_usage = 0
+
+# GCM #
 sio = socketio.Server()
 app = Flask(__name__)
 sid_array = []
 threads = []
 API_KEY = ''  # Google API Key
-reg_ids = []  # Registration Ids
+reg_ids = ['']  # Registration Ids
 
 
 class Server(threading.Thread):
@@ -33,8 +46,9 @@ def serve():
         # wrap Flask application with engineio's middleware
         app = socketio.Middleware(sio, app)
 
-        # deploy as an eventlet WSGI server
-        eventlet.wsgi.server(eventlet.listen(('', 8000)), app)
+        eventlet.wsgi.server(eventlet.wrap_ssl(eventlet.listen(('', 8000)),
+                                               certfile='/home/garthtee/cert.pem',
+                                               keyfile='/home/garthtee/privkey.pem'), app)
 
 
 def send_message(reg_ids):
@@ -88,9 +102,12 @@ def message(sid, data):
     print(str(core0))
     print(str(core1))
     print("*********")
-    if core0 > 60:
-        print("It is greater than 60!")
-        send_message(reg_ids)
+    send_message(reg_ids)
+
+
+@sio.on('hi')
+def hi(sid):
+    sio.emit('status-update', {'core0_in': core0, 'core1_in': core1, 'cpu_usage_in': cpu_usage})
 
 
 @sio.on('chat message')
@@ -107,8 +124,46 @@ def disconnect(sid):
     print('Disconnected')
 
 
+def get_time():
+    return datetime.datetime.now().time()
+
+
 # ////////////////// Main Program //////////////////////// #
 
 server_thread = Server("Server-thread")
 server_thread.start()
 threads.append(server_thread)
+print("Started @ " + str(get_time()))
+count = 0
+while True:
+    sensors.init()
+    try:
+        for chip in sensors.iter_detected_chips():
+            # print('%s at %s' % (chip, chip.adapter_name))
+            for feature in chip:
+                if feature.label == 'Core 0':
+                    core0 = feature.get_value()
+                elif feature.label == 'Core 1':
+                    core1 = feature.get_value()
+        for x in range(1):
+            cpu_usage = str(psutil.cpu_percent(interval=1))
+    finally:
+        sensors.cleanup()
+        time.sleep(2)
+
+
+        #    if __name__ == '__main__':
+        #         global app
+        #         # wrap Flask application with engineio's middleware
+        #         app = socketio.Middleware(sio, app)
+        #
+        #         # deploy as an eventlet WSGI server
+        #         eventlet.wsgi.server(eventlet.listen(
+
+        # if past_core0 != core0 or past_core1 != core1 or past_cpu_usage != cpu_usage:
+        #     sio.emit('status-update', {'core0_in': core0, 'core1_in': core1, 'cpu_usage_in': cpu_usage})
+        #     count += 1
+        #     print("Emitted. Count = " + str(count))
+        # past_core0 = core0
+        # past_core1 = core1
+        # past_cpu_usage = cpu_usage
